@@ -57,10 +57,18 @@ var exportCmd = &cobra.Command{
 		}
 
 		fmt.Println("Reading external files...")
-		mods, err := index.LoadAllMods()
+		unfilteredMods, err := index.LoadAllMods()
 		if err != nil {
 			fmt.Printf("Error reading file: %v\n", err)
 			os.Exit(1)
+		}
+
+		// Do not include optional mods that are not enabled by default
+		var mods []*core.Mod
+		for _, m := range unfilteredMods {
+			if m.Option == nil || !m.Option.Optional || m.Option.Default {
+				mods = append(mods, m)
+			}
 		}
 
 		fileName := viper.GetString("modrinth.export.output")
